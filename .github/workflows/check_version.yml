@@ -2,7 +2,7 @@ name: Check Spotify Version
 
 on:
   schedule:
-    - cron: "0 */1 * * *"
+    - cron: "*/5 * * * *" # Runs every 5 minutes
   workflow_dispatch:
 
 jobs:
@@ -11,21 +11,8 @@ jobs:
     permissions:
       contents: write
       statuses: write
-      deployments: write
 
     steps:
-      - name: Create Deployment Status
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: context.payload.deployment ? context.payload.deployment.id : null,
-              state: 'in_progress',
-              description: 'Checking Spotify version...'
-            })
-
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -62,14 +49,13 @@ jobs:
             git push
             echo "status=updated" >> $GITHUB_OUTPUT
             echo "🚀 New version committed and pushed" >> $GITHUB_STEP_SUMMARY
-          fi
 
-      - name: Update Status
+      - name: Update Commit Status
         if: always()
         uses: actions/github-script@v6
         with:
           script: |
-            const status = '${{ steps.commit.outputs.status }}' === 'updated' ? 'success' : 'inactive';
+            const status = '${{ steps.commit.outputs.status }}' === 'updated' ? 'success' : 'success';
             const description = status === 'success' ? 'Version updated!' : 'No updates needed';
 
             github.rest.repos.createCommitStatus({
