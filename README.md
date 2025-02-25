@@ -32,3 +32,18 @@ python main.py
 v0.0.1 ⋮ 2024
 ! Initial release with automatic version checking
 ```
+
+# Spotify Client Version Tracker
+
+![Version](https://img.shields.io/badge/Spotify%20Version-1.2.59.134.g0e17332f-brightgreen)
+
+Last checked: <auto-update>
+
+## Latest Check Status
+- **Current Version**: `1.2.59.134.g0e17332f`
+- **Last Updated**: <auto-update>
+- **Status**: ✅ Active
+
+## About
+Automatically tracks Spotify desktop client version changes.
+```
