@@ -71,8 +71,10 @@ jobs:
             STATUS_EMOJI="🔄"
           fi
 
+          # Update version badge and status info
           sed -i "s|Version-.*-brightgreen|Version-${VERSION}-brightgreen|g" README.md
           sed -i "s|Current Version\`: \`.*\`|Current Version\`: \`${VERSION}\`|g" README.md
+          sed -i "s|Last checked: .*|Last checked: ${DATE}|g" README.md
           sed -i "s|Last Updated\`: .*|Last Updated\`: ${DATE}|g" README.md
           sed -i "s|Status\`: .*|Status\`: ${STATUS_EMOJI} $([ "${{ steps.commit.outputs.status }}" = "updated" ] && echo "Just Updated" || echo "Active")|g" README.md
 
