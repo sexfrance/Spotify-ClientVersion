@@ -2,7 +2,7 @@ name: Check Spotify Version
 
 on:
   schedule:
-    - cron: "*/5 * * * *" 
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -32,7 +32,11 @@ jobs:
         id: version
         run: |
           echo "🔍 Checking Spotify version..." >> $GITHUB_STEP_SUMMARY
+          OLD_VERSION=$(cat version.txt || echo "none")
           python main.py
+          NEW_VERSION=$(cat version.txt)
+          echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "✅ Version check complete" >> $GITHUB_STEP_SUMMARY
 
       - name: Commit if version changed
@@ -45,10 +49,17 @@ jobs:
             echo "status=unchanged" >> $GITHUB_OUTPUT
             echo "💤 No version changes detected" >> $GITHUB_STEP_SUMMARY
           else
-            git commit -m "Update Spotify version"
+            git commit -m "Update Spotify version
+            
+            🔄 Version Change:
+            - Old: ${{ steps.version.outputs.old_version }}
+            - New: ${{ steps.version.outputs.new_version }}
+            
+            *Automatically detected and updated by GitHub Actions*"
             git push
             echo "status=updated" >> $GITHUB_OUTPUT
             echo "🚀 New version committed and pushed" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Update Commit Status
         if: always()
@@ -56,13 +67,15 @@ jobs:
         with:
           script: |
             const status = '${{ steps.commit.outputs.status }}' === 'updated' ? 'success' : 'success';
-            const description = status === 'success' ? 'Version updated!' : 'No updates needed';
+            const message = '${{ steps.commit.outputs.status }}' === 'updated' 
+              ? '🆕 Updated from ${{ steps.version.outputs.old_version }} to ${{ steps.version.outputs.new_version }}'
+              : '✅ Version is current (${{ steps.version.outputs.new_version }})';
 
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
-              state: status === 'success' ? 'success' : 'success',
-              description: description,
+              state: status,
+              description: message,
               context: 'Spotify Version Check'
             });
