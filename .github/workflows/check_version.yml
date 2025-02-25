@@ -2,15 +2,33 @@ name: Check Spotify Version
 
 on:
   schedule:
-    - cron: "0 */1 * * *" # Runs every 12 hours
-  workflow_dispatch: # Allows manual trigger
+    - cron: "0 */1 * * *"
+  workflow_dispatch:
 
 jobs:
   check-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+      deployments: write
 
     steps:
+      - name: Create Deployment Status
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment ? context.payload.deployment.id : null,
+              state: 'in_progress',
+              description: 'Checking Spotify version...'
+            })
+
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,14 +39,44 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests
+          echo "⚡ Dependencies installed" >> $GITHUB_STEP_SUMMARY
 
       - name: Run version checker
-        run: python main.py
+        id: version
+        run: |
+          echo "🔍 Checking Spotify version..." >> $GITHUB_STEP_SUMMARY
+          python main.py
+          echo "✅ Version check complete" >> $GITHUB_STEP_SUMMARY
 
       - name: Commit if version changed
+        id: commit
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add version.txt
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update Spotify version"
-          git push
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "status=unchanged" >> $GITHUB_OUTPUT
+            echo "💤 No version changes detected" >> $GITHUB_STEP_SUMMARY
+          else
+            git commit -m "Update Spotify version"
+            git push
+            echo "status=updated" >> $GITHUB_OUTPUT
+            echo "🚀 New version committed and pushed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Update Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ steps.commit.outputs.status }}' === 'updated' ? 'success' : 'inactive';
+            const description = status === 'success' ? 'Version updated!' : 'No updates needed';
+
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: status === 'success' ? 'success' : 'success',
+              description: description,
+              context: 'Spotify Version Check'
+            });
