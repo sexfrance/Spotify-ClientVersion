@@ -31,52 +31,108 @@ jobs:
       - name: Run version checker
         id: version
         run: |
-          echo "🔍 Checking Spotify version..." >> $GITHUB_STEP_SUMMARY
-          OLD_VERSION=$(cat version.txt || echo "none")
+          echo "🔍 Checking Spotify versions..." >> $GITHUB_STEP_SUMMARY
+          OLD_WEB_VERSION=$(cat version.txt || echo "none")
+          OLD_IOS_VERSION=$(cat ios_version.txt || echo "none")
+          OLD_ANDROID_VERSION=$(cat android_version.txt || echo "none")
           python main.py
-          NEW_VERSION=$(cat version.txt)
-          echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "✅ Version check complete" >> $GITHUB_STEP_SUMMARY
+          NEW_WEB_VERSION=$(cat version.txt)
+          NEW_IOS_VERSION=$(cat ios_version.txt)
+          NEW_ANDROID_VERSION=$(cat android_version.txt)
+          echo "old_web_version=$OLD_WEB_VERSION" >> $GITHUB_OUTPUT
+          echo "new_web_version=$NEW_WEB_VERSION" >> $GITHUB_OUTPUT
+          echo "old_ios_version=$OLD_IOS_VERSION" >> $GITHUB_OUTPUT
+          echo "new_ios_version=$NEW_IOS_VERSION" >> $GITHUB_OUTPUT
+          echo "old_android_version=$OLD_ANDROID_VERSION" >> $GITHUB_OUTPUT
+          echo "new_android_version=$NEW_ANDROID_VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Version checks complete" >> $GITHUB_STEP_SUMMARY
 
-      - name: Commit if version changed
-        id: commit
+      - name: Commit if web version changed
+        id: commit_web
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add version.txt
           if git diff --quiet && git diff --staged --quiet; then
             echo "status=unchanged" >> $GITHUB_OUTPUT
-            echo "💤 No version changes detected" >> $GITHUB_STEP_SUMMARY
           else
-            git commit -m "Update Spotify version
+            git commit -m "Update Spotify Web version
             
-            🔄 Version Change:
-            - Old: ${{ steps.version.outputs.old_version }}
-            - New: ${{ steps.version.outputs.new_version }}
-            
-            *Automatically detected and updated by GitHub Actions*"
+            🔄 Web Version Change:
+            - Old: ${{ steps.version.outputs.old_web_version }}
+            - New: ${{ steps.version.outputs.new_web_version }}"
             git push
             echo "status=updated" >> $GITHUB_OUTPUT
-            echo "🚀 New version committed and pushed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Commit if iOS version changed
+        id: commit_ios
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add ios_version.txt
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "status=unchanged" >> $GITHUB_OUTPUT
+          else
+            git commit -m "Update Spotify iOS version
+            
+            🔄 iOS Version Change:
+            - Old: ${{ steps.version.outputs.old_ios_version }}
+            - New: ${{ steps.version.outputs.new_ios_version }}"
+            git push
+            echo "status=updated" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit if Android version changed
+        id: commit_android
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add android_version.txt
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "status=unchanged" >> $GITHUB_OUTPUT
+          else
+            git commit -m "Update Spotify Android version
+            
+            🔄 Android Version Change:
+            - Old: ${{ steps.version.outputs.old_android_version }}
+            - New: ${{ steps.version.outputs.new_android_version }}"
+            git push
+            echo "status=updated" >> $GITHUB_OUTPUT
           fi
 
       - name: Update README
         if: always()
         run: |
-          VERSION=$(cat version.txt)
+          WEB_VERSION=$(cat version.txt)
+          IOS_VERSION=$(cat ios_version.txt)
+          ANDROID_VERSION=$(cat android_version.txt)
           DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
-          STATUS_EMOJI="✅"
-          if [ "${{ steps.commit.outputs.status }}" = "updated" ]; then
-            STATUS_EMOJI="🔄"
-          fi
 
-          # Update version badge and status info
-          sed -i "s|Version-.*-brightgreen|Version-${VERSION}-brightgreen|g" README.md
-          sed -i "s|Current Version\`: \`.*\`|Current Version\`: \`${VERSION}\`|g" README.md
+          # Update Web version badge and info
+          sed -i "s|Spotify%20Web-.*-brightgreen|Spotify%20Web-${WEB_VERSION}-brightgreen|g" README.md
+          sed -i "s|Web Version\`: \`.*\`|Web Version\`: \`${WEB_VERSION}\`|g" README.md
+
+          # Update iOS version badge and info
+          sed -i "s|Spotify%20iOS-.*-blue|Spotify%20iOS-${IOS_VERSION}-blue|g" README.md
+          sed -i "s|iOS Version\`: \`.*\`|iOS Version\`: \`${IOS_VERSION}\`|g" README.md
+
+          # Update Android version badge and info
+          sed -i "s|Spotify%20Android-.*-orange|Spotify%20Android-${ANDROID_VERSION}-orange|g" README.md
+          sed -i "s|Android Version\`: \`.*\`|Android Version\`: \`${ANDROID_VERSION}\`|g" README.md
+
+          # Update timestamps
           sed -i "s|Last checked: .*|Last checked: ${DATE}|g" README.md
           sed -i "s|Last Updated\`: .*UTC|Last Updated\`: ${DATE}|g" README.md
-          sed -i "s|Status\`: .*|Status\`: ${STATUS_EMOJI} $([ "${{ steps.commit.outputs.status }}" = "updated" ] && echo "Just Updated" || echo "Active")|g" README.md
+
+          # Update status
+          STATUS="Active"
+          if [ "${{ steps.commit_web.outputs.status }}" = "updated" ] || \
+             [ "${{ steps.commit_ios.outputs.status }}" = "updated" ] || \
+             [ "${{ steps.commit_android.outputs.status }}" = "updated" ]; then
+            STATUS="Just Updated"
+          fi
+          sed -i "s|Status\`: .*|Status\`: ${STATUS}|g" README.md
 
           git add README.md
           git diff --quiet && git diff --staged --quiet || (git commit -m "📝 Update README with latest version info" && git push)
@@ -85,15 +141,36 @@ jobs:
         if: always()
         uses: actions/github-script@v6
         env:
-          COMMIT_STATUS: ${{ steps.commit.outputs.status }}
-          OLD_VERSION: ${{ steps.version.outputs.old_version }}
-          NEW_VERSION: ${{ steps.version.outputs.new_version }}
+          WEB_COMMIT_STATUS: ${{ steps.commit_web.outputs.status }}
+          IOS_COMMIT_STATUS: ${{ steps.commit_ios.outputs.status }}
+          ANDROID_COMMIT_STATUS: ${{ steps.commit_android.outputs.status }}
+          OLD_WEB_VERSION: ${{ steps.version.outputs.old_web_version }}
+          NEW_WEB_VERSION: ${{ steps.version.outputs.new_web_version }}
+          OLD_IOS_VERSION: ${{ steps.version.outputs.old_ios_version }}
+          NEW_IOS_VERSION: ${{ steps.version.outputs.new_ios_version }}
+          OLD_ANDROID_VERSION: ${{ steps.version.outputs.old_android_version }}
+          NEW_ANDROID_VERSION: ${{ steps.version.outputs.new_android_version }}
         with:
           script: |
-            const status = process.env.COMMIT_STATUS === 'updated' ? 'success' : 'success';
-            const message = process.env.COMMIT_STATUS === 'updated' 
-              ? `Updated from ${process.env.OLD_VERSION} to ${process.env.NEW_VERSION}`
-              : `Version is current (${process.env.NEW_VERSION})`;
+            const status = ['updated'].includes(process.env.WEB_COMMIT_STATUS) ||
+                          ['updated'].includes(process.env.IOS_COMMIT_STATUS) ||
+                          ['updated'].includes(process.env.ANDROID_COMMIT_STATUS)
+                          ? 'success' : 'success';
+
+            const changes = [];
+            if (process.env.WEB_COMMIT_STATUS === 'updated') {
+              changes.push(`Web: ${process.env.OLD_WEB_VERSION} → ${process.env.NEW_WEB_VERSION}`);
+            }
+            if (process.env.IOS_COMMIT_STATUS === 'updated') {
+              changes.push(`iOS: ${process.env.OLD_IOS_VERSION} → ${process.env.NEW_IOS_VERSION}`);
+            }
+            if (process.env.ANDROID_COMMIT_STATUS === 'updated') {
+              changes.push(`Android: ${process.env.OLD_ANDROID_VERSION} → ${process.env.NEW_ANDROID_VERSION}`);
+            }
+
+            const message = changes.length > 0
+              ? `Updated: ${changes.join(', ')}`
+              : `All versions are current`;
 
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
