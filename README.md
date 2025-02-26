@@ -1,7 +1,7 @@
 <div align="center">
   <h2 align="center">Spotify Client Version Checker</h2>
   <p align="center">
-    A simple script that tracks Spotify Web Player's client version by checking it every hour.
+    A simple script that tracks Spotify Web Player's client version by checking it every 10 minutes.
   </p>
 </div>
 
@@ -40,10 +40,11 @@ v0.0.1 ⋮ 2024
 Last checked: 2025-02-26 09:57 UTC
 
 ## Latest Check Status
-- **Current Version**: `1.2.59.134.g0e17332f`
-- **Last Updated**: <auto-update>
-- **Status**: ✅ Active
+
+- **Current Version**: `1.2.59.137.g41d5398d`
+- **Last Updated**: 2025-02-26 09:57 UTC
+- **Status**: Active
 
 ## About
+
 Automatically tracks Spotify desktop client version changes.
-```

@@ -2,7 +2,7 @@ name: Check Spotify Version
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/10 * * * *"  # Runs every 10 minutes
   workflow_dispatch:
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
           sed -i "s|Version-.*-brightgreen|Version-${VERSION}-brightgreen|g" README.md
           sed -i "s|Current Version\`: \`.*\`|Current Version\`: \`${VERSION}\`|g" README.md
           sed -i "s|Last checked: .*|Last checked: ${DATE}|g" README.md
-          sed -i "s|Last Updated\`: .*|Last Updated\`: ${DATE}|g" README.md
+          sed -i "s|Last Updated\`: .*UTC|Last Updated\`: ${DATE}|g" README.md
           sed -i "s|Status\`: .*|Status\`: ${STATUS_EMOJI} $([ "${{ steps.commit.outputs.status }}" = "updated" ] && echo "Just Updated" || echo "Active")|g" README.md
 
           git add README.md
@@ -88,8 +88,8 @@ jobs:
           script: |
             const status = '${{ steps.commit.outputs.status }}' === 'updated' ? 'success' : 'success';
             const message = '${{ steps.commit.outputs.status }}' === 'updated' 
-              ? '🆕 Updated from ${{ steps.version.outputs.old_version }} to ${{ steps.version.outputs.new_version }}'
-              : '✅ Version is current (${{ steps.version.outputs.new_version }})';
+              ? `Updated from ${steps.version.outputs.old_version} to ${steps.version.outputs.new_version}`
+              : `Version is current (${steps.version.outputs.new_version})`;
 
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
