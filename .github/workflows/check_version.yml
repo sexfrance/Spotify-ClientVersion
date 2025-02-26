@@ -2,7 +2,7 @@ name: Check Spotify Version
 
 on:
   schedule:
-    - cron: "*/10 * * * *"  # Runs every 10 minutes
+    - cron: "*/10 * * * *" # Runs every 10 minutes
   workflow_dispatch:
 
 jobs:
@@ -84,12 +84,16 @@ jobs:
       - name: Update Commit Status
         if: always()
         uses: actions/github-script@v6
+        env:
+          COMMIT_STATUS: ${{ steps.commit.outputs.status }}
+          OLD_VERSION: ${{ steps.version.outputs.old_version }}
+          NEW_VERSION: ${{ steps.version.outputs.new_version }}
         with:
           script: |
-            const status = '${{ steps.commit.outputs.status }}' === 'updated' ? 'success' : 'success';
-            const message = '${{ steps.commit.outputs.status }}' === 'updated' 
-              ? `Updated from ${steps.version.outputs.old_version} to ${steps.version.outputs.new_version}`
-              : `Version is current (${steps.version.outputs.new_version})`;
+            const status = process.env.COMMIT_STATUS === 'updated' ? 'success' : 'success';
+            const message = process.env.COMMIT_STATUS === 'updated' 
+              ? `Updated from ${process.env.OLD_VERSION} to ${process.env.NEW_VERSION}`
+              : `Version is current (${process.env.NEW_VERSION})`;
 
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
