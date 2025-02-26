@@ -35,9 +35,9 @@ v0.0.1 ⋮ 2024
 
 # Spotify Client Version Tracker
 
-![Version](https://img.shields.io/badge/Spotify%20Version-1.2.59.136.ge5199fb2-brightgreen)
+![Version](https://img.shields.io/badge/Spotify%20Version-1.2.59.137.g41d5398d-brightgreen)
 
-Last checked: 2025-02-26 09:33 UTC
+Last checked: 2025-02-26 09:42 UTC
 
 ## Latest Check Status
 - **Current Version**: `1.2.59.134.g0e17332f`
