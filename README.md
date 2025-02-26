@@ -44,7 +44,3 @@ Last checked: 2025-02-26 09:57 UTC
 - **Current Version**: `1.2.59.137.g41d5398d`
 - **Last Updated**: 2025-02-26 09:57 UTC
 - **Status**: Active
-
-## About
-
-Automatically tracks Spotify desktop client version changes.
