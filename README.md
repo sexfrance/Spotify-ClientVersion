@@ -37,7 +37,7 @@ v0.0.1 ⋮ 2024
 
 ![Version](https://img.shields.io/badge/Spotify%20Version-1.2.59.137.g41d5398d-brightgreen)
 
-Last checked: 2025-02-26 09:42 UTC
+Last checked: 2025-02-26 09:49 UTC
 
 ## Latest Check Status
 - **Current Version**: `1.2.59.134.g0e17332f`
