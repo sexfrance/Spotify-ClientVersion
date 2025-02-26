@@ -47,11 +47,3 @@ v0.0.1 ⋮ 2024
 ![Android Version](https://img.shields.io/badge/Spotify%20Android-8.8.22.510-orange)
 
 Last checked: 2025-02-26 10:53 UTC
-
-## Latest Check Status
-
-- **Web Version**: `1.2.59.137.g41d5398d`
-- **iOS Version**: `8.8.22`
-- **Android Version**: `8.8.22.510`
-- **Last Updated**: 2025-02-26 09:57 UTC
-- **Status**: Active
