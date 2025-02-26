@@ -33,7 +33,35 @@ def get_version(url):
     else:
         return "Version not found"
 
+def get_ios_version(app_id: str = "324684580") -> str:
+    url = f"https://itunes.apple.com/lookup?id={app_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if 'results' in data and len(data['results']) > 0:
+            return data['results'][0].get('version', 'Unknown')
+    return 'Unknown'
+
+def get_android_version():
+    url = f"https://www.appbrain.com/app/spotify-music-and-podcasts/com.spotify.music"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        match = re.search(r'<meta itemprop="softwareVersion" content="([0-9.]+)"', response.text)
+        if match:
+            return match.group(1)
+    return 'Unknown'
+
+
+android_version = get_android_version()
 script_url = get_script_link()
+ios_version = get_ios_version()
+
+with open("ios_version.txt", "w") as ios_file:
+    ios_file.write(ios_version)
+
+with open("android_version.txt", "w") as android_file:
+    android_file.write(android_version)
 
 if script_url:
     version = get_version(script_url)
