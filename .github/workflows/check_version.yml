@@ -28,6 +28,12 @@ jobs:
           pip install requests
           echo "⚡ Dependencies installed" >> $GITHUB_STEP_SUMMARY
 
+      # Set up Git configuration once
+      - name: Configure Git
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
       - name: Run version checker
         id: version
         run: |
@@ -50,92 +56,116 @@ jobs:
       - name: Commit if web version changed
         id: commit_web
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add version.txt
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "status=unchanged" >> $GITHUB_OUTPUT
+          if [ -f "version.txt" ]; then
+            git add version.txt
+            if git diff --cached --quiet version.txt; then
+              echo "status=unchanged" >> $GITHUB_OUTPUT
+              echo "Web version unchanged" >> $GITHUB_STEP_SUMMARY
+            else
+              git commit -m "Update Spotify Web version
+              
+              🔄 Web Version Change:
+              - Old: ${{ steps.version.outputs.old_web_version }}
+              - New: ${{ steps.version.outputs.new_web_version }}"
+              git push
+              echo "status=updated" >> $GITHUB_OUTPUT
+              echo "Web version updated" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            git commit -m "Update Spotify Web version
-            
-            🔄 Web Version Change:
-            - Old: ${{ steps.version.outputs.old_web_version }}
-            - New: ${{ steps.version.outputs.new_web_version }}"
-            git push
-            echo "status=updated" >> $GITHUB_OUTPUT
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "Error: version.txt not found" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Commit if iOS version changed
         id: commit_ios
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add ios_version.txt
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "status=unchanged" >> $GITHUB_OUTPUT
+          if [ -f "ios_version.txt" ]; then
+            git add ios_version.txt
+            if git diff --cached --quiet ios_version.txt; then
+              echo "status=unchanged" >> $GITHUB_OUTPUT
+              echo "iOS version unchanged" >> $GITHUB_STEP_SUMMARY
+            else
+              git commit -m "Update Spotify iOS version
+              
+              🔄 iOS Version Change:
+              - Old: ${{ steps.version.outputs.old_ios_version }}
+              - New: ${{ steps.version.outputs.new_ios_version }}"
+              git push
+              echo "status=updated" >> $GITHUB_OUTPUT
+              echo "iOS version updated" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            git commit -m "Update Spotify iOS version
-            
-            🔄 iOS Version Change:
-            - Old: ${{ steps.version.outputs.old_ios_version }}
-            - New: ${{ steps.version.outputs.new_ios_version }}"
-            git push
-            echo "status=updated" >> $GITHUB_OUTPUT
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "Error: ios_version.txt not found" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Commit if Android version changed
         id: commit_android
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add android_version.txt
-          if git diff --quiet && git diff --staged --quiet; then
-            echo "status=unchanged" >> $GITHUB_OUTPUT
+          if [ -f "android_version.txt" ]; then
+            git add android_version.txt
+            if git diff --cached --quiet android_version.txt; then
+              echo "status=unchanged" >> $GITHUB_OUTPUT
+              echo "Android version unchanged" >> $GITHUB_STEP_SUMMARY
+            else
+              git commit -m "Update Spotify Android version
+              
+              🔄 Android Version Change:
+              - Old: ${{ steps.version.outputs.old_android_version }}
+              - New: ${{ steps.version.outputs.new_android_version }}"
+              git push
+              echo "status=updated" >> $GITHUB_OUTPUT
+              echo "Android version updated" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            git commit -m "Update Spotify Android version
-            
-            🔄 Android Version Change:
-            - Old: ${{ steps.version.outputs.old_android_version }}
-            - New: ${{ steps.version.outputs.new_android_version }}"
-            git push
-            echo "status=updated" >> $GITHUB_OUTPUT
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "Error: android_version.txt not found" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Update README
         if: always()
         run: |
-          WEB_VERSION=$(cat version.txt)
-          IOS_VERSION=$(cat ios_version.txt)
-          ANDROID_VERSION=$(cat android_version.txt)
-          DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+          if [ -f "version.txt" ] && [ -f "ios_version.txt" ] && [ -f "android_version.txt" ] && [ -f "README.md" ]; then
+            WEB_VERSION=$(cat version.txt)
+            IOS_VERSION=$(cat ios_version.txt)
+            ANDROID_VERSION=$(cat android_version.txt)
+            DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
 
-          # Update Web version badge and info
-          sed -i "s|Spotify%20Web-.*-brightgreen|Spotify%20Web-${WEB_VERSION}-brightgreen|g" README.md
-          sed -i "s|Web Version\`: \`.*\`|Web Version\`: \`${WEB_VERSION}\`|g" README.md
+            # Update Web version badge and info
+            sed -i "s|Spotify%20Web-.*-brightgreen|Spotify%20Web-${WEB_VERSION}-brightgreen|g" README.md
+            sed -i "s|Web Version\`: \`.*\`|Web Version\`: \`${WEB_VERSION}\`|g" README.md
 
-          # Update iOS version badge and info
-          sed -i "s|Spotify%20iOS-.*-blue|Spotify%20iOS-${IOS_VERSION}-blue|g" README.md
-          sed -i "s|iOS Version\`: \`.*\`|iOS Version\`: \`${IOS_VERSION}\`|g" README.md
+            # Update iOS version badge and info
+            sed -i "s|Spotify%20iOS-.*-blue|Spotify%20iOS-${IOS_VERSION}-blue|g" README.md
+            sed -i "s|iOS Version\`: \`.*\`|iOS Version\`: \`${IOS_VERSION}\`|g" README.md
 
-          # Update Android version badge and info
-          sed -i "s|Spotify%20Android-.*-orange|Spotify%20Android-${ANDROID_VERSION}-orange|g" README.md
-          sed -i "s|Android Version\`: \`.*\`|Android Version\`: \`${ANDROID_VERSION}\`|g" README.md
+            # Update Android version badge and info
+            sed -i "s|Spotify%20Android-.*-orange|Spotify%20Android-${ANDROID_VERSION}-orange|g" README.md
+            sed -i "s|Android Version\`: \`.*\`|Android Version\`: \`${ANDROID_VERSION}\`|g" README.md
 
-          # Update timestamps
-          sed -i "s|Last checked: .*|Last checked: ${DATE}|g" README.md
-          sed -i "s|Last Updated\`: .*UTC|Last Updated\`: ${DATE}|g" README.md
+            # Update timestamps
+            sed -i "s|Last checked: .*|Last checked: ${DATE}|g" README.md
+            sed -i "s|Last Updated\`: .*UTC|Last Updated\`: ${DATE}|g" README.md
 
-          # Update status
-          STATUS="Active"
-          if [ "${{ steps.commit_web.outputs.status }}" = "updated" ] || \
-             [ "${{ steps.commit_ios.outputs.status }}" = "updated" ] || \
-             [ "${{ steps.commit_android.outputs.status }}" = "updated" ]; then
-            STATUS="Just Updated"
+            # Update status
+            STATUS="Active"
+            if [ "${{ steps.commit_web.outputs.status }}" = "updated" ] || \
+               [ "${{ steps.commit_ios.outputs.status }}" = "updated" ] || \
+               [ "${{ steps.commit_android.outputs.status }}" = "updated" ]; then
+              STATUS="Just Updated"
+            fi
+            sed -i "s|Status\`: .*|Status\`: ${STATUS}|g" README.md
+
+            git add README.md
+            if ! git diff --cached --quiet README.md; then
+              git commit -m "📝 Update README with latest version info" && git push
+              echo "README updated" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "No changes to README" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "Error: One or more required files missing" >> $GITHUB_STEP_SUMMARY
           fi
-          sed -i "s|Status\`: .*|Status\`: ${STATUS}|g" README.md
-
-          git add README.md
-          git diff --quiet && git diff --staged --quiet || (git commit -m "📝 Update README with latest version info" && git push)
 
       - name: Update Commit Status
         if: always()
