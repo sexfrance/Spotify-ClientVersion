@@ -1,37 +1,27 @@
 import requests
 import re
 
-def get_script_link():
+def get_client_version_from_html():
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
     }
-
     response = requests.get('https://open.spotify.com/intl-fr/', headers=headers)
-    
-    # Look for the web-player script URL
-    script_pattern = r'src="(https://open\.spotifycdn\.com/cdn/build/web-player/web-player\.[a-f0-9]+\.js)"'
-    script_match = re.search(script_pattern, response.text)
-    
-    if script_match:
-        return script_match.group(1)
-    return None
-
-def get_version(url):
-    headers = {
-        'accept': '*/*',
-    }
-
-    response = requests.get(url, headers=headers)
-
-    # Look for clientVersion pattern
-    version_pattern = r'clientVersion:"([\d\.]+g[a-f0-9]+)"'
-    version_match = re.search(version_pattern, response.text)
-
-    if version_match:
-        version = version_match.group(1)
-        return version
-    else:
-        return "Version not found"
+    match = re.search(r'<script id="appServerConfig" type="text/plain">(.*?)</script>', response.text)
+    if match:
+        import base64
+        import json
+        b64 = match.group(1).strip()
+        try:
+            decoded = base64.b64decode(b64 + "==")
+        except Exception:
+            decoded = base64.b64decode(b64)
+        try:
+            # Try to decode as utf-8 and parse JSON
+            data = json.loads(decoded.decode('utf-8'))
+            return data.get('clientVersion', 'Version not found')
+        except Exception:
+            return "Version not found"
+    return "Version not found"
 
 def get_ios_version(app_id: str = "324684580") -> str:
     url = f"https://itunes.apple.com/lookup?id={app_id}"
@@ -54,8 +44,8 @@ def get_android_version():
 
 
 android_version = get_android_version()
-script_url = get_script_link()
 ios_version = get_ios_version()
+website_version = get_client_version_from_html()
 
 with open("ios_version.txt", "w") as ios_file:
     ios_file.write(ios_version)
@@ -63,7 +53,5 @@ with open("ios_version.txt", "w") as ios_file:
 with open("android_version.txt", "w") as android_file:
     android_file.write(android_version)
 
-if script_url:
-    version = get_version(script_url)
-    with open("version.txt", "w") as f:
-        f.write(version)
+with open("version.txt", "w") as f:
+    f.write(website_version)
