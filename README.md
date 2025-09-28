@@ -44,6 +44,6 @@ v0.0.1 ⋮ 2024
 
 ![Web Version](https://img.shields.io/badge/Spotify%20Web-1.2.74.274.g38c1d41e-brightgreen)
 ![iOS Version](https://img.shields.io/badge/Spotify%20iOS-9.0.82-blue)
-![Android Version](https://img.shields.io/badge/Spotify%20Android-9.0.80.1343-orange)
+![Android Version](https://img.shields.io/badge/Spotify%20Android-9.0.82.1032-orange)
 
-Last checked: 2025-09-28 07:35 UTC
+Last checked: 2025-09-28 07:44 UTC
