@@ -42,8 +42,8 @@ v0.0.1 ⋮ 2024
 
 # Spotify Client Version Tracker
 
-![Web Version](https://img.shields.io/badge/Spotify%20Web-1.2.88.347.g206c377a-brightgreen)
+![Web Version](https://img.shields.io/badge/Spotify%20Web-1.2.88.348.g8ba9baab-brightgreen)
 ![iOS Version](https://img.shields.io/badge/Spotify%20iOS-9.1.36-blue)
 ![Android Version](https://img.shields.io/badge/Spotify%20Android-Unknown-orange)
 
-Last checked: 2026-04-14 15:52 UTC
+Last checked: 2026-04-14 17:17 UTC
